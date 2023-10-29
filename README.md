@@ -1,0 +1,2 @@
+# fxtwitterChangeBot
+twitter.comを投稿した際にfxtwitter.comに修正するコード
