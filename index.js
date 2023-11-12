@@ -16,32 +16,33 @@ client.once('ready', () => {
 });
 
 client.on('messageCreate', async (message) => {
-  // BOTには反応しないようにする。twitter.com/x.comが投稿されたことを確認する。
-  if (message.author.bot || !(message.content.includes('twitter.com') || message.content.includes('x.com'))) {
+  if (message.author.bot) {
     return;
   }
 
-  let updatedContent = message.content;
+  const content = message.content;
 
-  // fxtwitter.comまたはvxtwitter.comが含まれる場合はそのメッセージを送信しない
-  if (updatedContent.includes('fxtwitter.com') || updatedContent.includes('vxtwitter.com')) {
+  // fxtwitter.com / fixupx.com / vxtwitter.com / fixv.comが含まれる場合はそのメッセージを送信しない
+  if (content.includes('fxtwitter.com') || content.includes('fixupx.com') || content.includes('vxtwitter.com') || content.includes('fixvx.com')) {
     return;
   }
 
-  try {
-    await message.delete();
-  } catch (error) {
-    console.error('Error occurred while deleting the message:', error);
+  // メッセージが "https://twitter.com/username/status/xxxxxx" または "https://x.com/username/status/xxxxxx" の形式を確認する。
+  if (content.match(/https:\/\/(twitter\.com|x\.com)\/[^/]+\/status\/\d+/)) {
+    try {
+      await message.delete();
+
+      // twitter.comの場合は、fxtwitter.comに変更し、x.comの時は、fixupx.comに変更する。
+      const updatedContent = content
+        .replace(/https:\/\/twitter\.com/g, 'https://fxtwitter.com')
+        .replace(/https:\/\/x\.com/g, 'https://fixupx.com');
+      
+      const newMessage = `<@${message.author.id}> (${message.author.id}) : ${updatedContent}`;
+      message.channel.send(newMessage);
+    } catch (error) {
+      console.error('メッセージの処理中にエラーが発生しました:', error);
+    }
   }
-
-  // 特定の文字列の置換と新しいメッセージの送信
-  updatedContent = updatedContent.replace(/twitter.com/g, 'fxtwitter.com');
-  updatedContent = updatedContent.replace(/x.com/g, 'fxtwitter.com');
-
-  const newMessage = `<@${message.author.id}> (${message.author.id}) : ${updatedContent}`;
-
-
-  message.channel.send(newMessage);
 });
 
 // config.jsonのTOKENを読み込む
